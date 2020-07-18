@@ -25,8 +25,10 @@ spawnProcess.stdout.on('data', function (data) {
 	console.log(ins);
 	if (ins.indexOf("Connection successful") != -1)
 		perelivka(50)
-	else if (ins.indexOf("Command Failed: Disconnected") != 1 && interval)
+	else if (ins.indexOf("Command Failed: Disconnected") != -1 && interval) {
 		clearInterval(interval);
+		console.log('clear');
+	}
 		// switchLight(500)
 });
 
@@ -67,15 +69,19 @@ rl.on('close', () => {
 })
 
 rl.on('line', (data) => {
-	if (data.indexOf('x ') != -1)
+	if (data.indexOf('x ') != -1) {
 		perelivka(data.split(' ')[1]);
-	else if (data.indexOf('tw ') != -1)
+		console.log('switch to', data.split(' ')[1]);
+	}
+	else if (data.indexOf('tw ') != -1) {
 		CYCLE_SEC = data.split(' ')[1];
-	else
+	}
+	else {
 		spawnProcess.stdin.write(`${data}\n`);
+	}
 })
 
-var CYCLE_SEC  = 15.0;
+var CYCLE_SEC  = 5.0;
 var hue_min = 0.0;
 var hue_max = 1.0;
 

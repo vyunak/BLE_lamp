@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "bluetooth-hci-socket": "git+https://github.com/jrobeson/node-bluetooth-hci-socket.git#fix-builds-for-node-10",
+    "express": "^4.17.1",
     "mathjs": "^7.1.0",
     "noble": "^1.9.1"
   }
