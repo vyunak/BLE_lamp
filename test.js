@@ -1,13 +1,19 @@
 var noble = require('noble');
 var mathjs = require('mathjs');
 
+var state = {
+	color: null,
+	code: null,
+	id: 'ff:ff:38:59:a8:31'
+}
+
 noble.on('stateChange', function(state) {
-  if (state === 'poweredOn') {
-    noble.startScanning([], false);
-  } else {
-  	console.log('stopScan');
-    noble.stopScanning();
-  }
+	if (state === 'poweredOn') {
+		noble.startScanning([], false);
+	} else {
+		console.log('stopScan');
+		noble.stopScanning();
+	}
 });
 
 noble.on('scanStart', (date) => {
@@ -18,72 +24,76 @@ noble.on('warning', (message) => {
 	console.log('warning', message);
 });
 
-
-function decimalToHexString(number)
-{
-  if (number < 0)
-  {
-    number = 0xFFFFFFFF + number + 1;
-  }
-
-  return number.toString(16).toUpperCase();
-}
-
 noble.on('discover', (peripheral) => {
-	// console.log(peripheral);
-	if (peripheral.address == 'ff:ff:38:59:a8:31' || peripheral.id == 'ff:ff:38:59:a8:31') {
-		console.log('======================');
-		console.log(peripheral);
-		// peripheral.disconnect();
-		// noble.stopScanning();
+
+	if (peripheral.address == state.id || peripheral.id == state.id) {
+
 		peripheral.on('disconnect', function() {
 			process.exit(0);
 		});
+
 		peripheral.connect((error) => {
-			console.log('connect', error);
-			var i = 0;
 
 			var serviceUUIDs = ["ffd5", "ffd0"];
 			var characteristicUUIDs = ["ffd9", "ffd4"];
 			peripheral.discoverSomeServicesAndCharacteristics(serviceUUIDs, characteristicUUIDs, (error, services, characteristics) => {
 
+				characteristic = characteristics[0];
+
 				characteristics[0].read((error, data) => {
-					console.log(data.toString('hex'));
-					console.log(data[0]);
+
+					if (HTS(data[0]) == '56' || HTS(data[0]) == '0')
+					{
+						state.color = {
+							r: data[1] == 0 ? 255 : data[1],
+							g: data[2] == 0 ? 255 : data[2],
+							b: data[3] == 0 ? 255 : data[3]
+						}
+						switchColor(characteristics[0], state.color, 250, 0xF0);
+						console.log(state.color);
+					}
 				})
-				characteristics[1].read((error, data) => {
-					console.log(data.toString('hex'));
-				})
+
+				// characteristic.on('write', () => {
+					
+				// })
+
+				function HTS(num) {
+					return Number(num).toString(16);
+				}
 
 				function calcMinus(a, b) {
 					return a - b;
 				}
 
-				function switchColor(characteristic, color1, color2, time, brightness) {
+				function switchColor(characteristic, color, time, brightness) {
 
 					(time < 100) ? time = 100 : null;
+
+					prevColor = state.color;
+					console.log(prevColor, color);
 
 					animationSpeed = 10;
 					timeInterval = time / animationSpeed;
 
-					col1 = calcMinus(color1[0], color2[0]) / timeInterval;
-					col2 = calcMinus(color1[1], color2[1]) / timeInterval;
-					col3 = calcMinus(color1[2], color2[2]) / timeInterval;
-					
+					perColorR = calcMinus(prevColor.r, color.r) / timeInterval;
+					perColorG = calcMinus(prevColor.g, color.g) / timeInterval;
+					perColorB = calcMinus(prevColor.b, color.b) / timeInterval;
+
 					v = 0;
 					interval = setInterval(() => {
 						v += animationSpeed;
 
-						color1[0] = color1[0] - col1;
-						color1[1] = color1[1] - col2;
-						color1[2] = color1[2] - col3;
+						prevColor.r = prevColor.r - perColorR;
+						prevColor.g = prevColor.g - perColorG;
+						prevColor.b = prevColor.b - perColorB;
 
 
-						var num1 = color1[0];
-						var num2 = color1[1];
-						var num3 = color1[2];
+						var red = prevColor.r;
+						var green = prevColor.g;
+						var blue = prevColor.b;
 
-						var buf = new Buffer([0x56, num1, num2, num3, brightness, 0xF0 ,0xAA]);
+						var buf = new Buffer([0x56, red, green, blue, brightness, 0xF0 ,0xAA]);
 
 						characteristic.write(buf);
 
@@ -91,91 +101,25 @@ noble.on('discover', (peripheral) => {
 							clearInterval(interval);
 
 					}, animationSpeed)
-					console.log(color1, color2);
-				}
 
-				
-				color1 = [mathjs.randomInt(0, 255), mathjs.randomInt(0, 255), mathjs.randomInt(0, 255)];
+					state.color = color;
+
+				}
 
 				setInterval(() => {
 
-					color2 = [mathjs.randomInt(0, 179), mathjs.randomInt(0, 179), mathjs.randomInt(0, 179)];
+					color = {
+						r: mathjs.randomInt(0, 179),
+						g: mathjs.randomInt(0, 179),
+						b: mathjs.randomInt(0, 179)
+					};
 
-					switchColor(characteristics[0], color1, color2, 250, 0xF0);
-
-					color1 = color2;
+					switchColor(characteristics[0], color, 250, 0xF0);
 				}, 333)
-
-				// characteristics[0].on('write', () => {
-				// 	characteristics[0].read((error, data) => {
-				// 		console.log(data.toString('hex'));
-				// 		console.log(data[0]);
-				// 	})
-				// })
 
 			});
 
-			// peripheral.discoverServices([], function(error, services) {
-			// 	var serviceIndex = 0;
-			// 	console.log(services);
-			// });
 		});
-
-		// peripheral.once('connect', (date) => {
-		// 	console.log('connect to: ff:ff:38:59:a8:31');
-		// 	// peripheral.discoverServices([], function(error, services) {
-		// 	// 	console.log(error, services);
-		// 	// });
-		// 	// console.log(peripheral);
-
-		// 	// peripheral.discoverAllServicesAndCharacteristics();
-		// 	// var serviceUUIDs = ["ffd5"];
-		// 	// var characteristicUUIDs = ["ffd9"];
-		// 	// peripheral.discoverServices();
-
-		// });
-
-		// process.beforeExit = () => {
-		// 	peripheral.disconnect();
-		// }
-
-		// peripheral.once('disconnect', (date) => {
-		// 	peripheral.disconnect();
-		// 	console.log('disconnect');
-		// 	// noble.stopScanning();
-		// 	// setTimeout(() => {
-		// 	// 	noble.startScanning();
-		// 	// }, 5e3)
-		// 	// process.exit();
-		// });
-
-
-		// peripheral.once('servicesDiscover', (services) => {
-		// 	console.log(services);
-			// console.log('services', services);
-			// service = services[1];
-			// service.discoverCharacteristics('ffd9');
-
-			// service.once('characteristicsDiscover', (chars) => {
-			// 	console.log('char', chars);
-			// 	characteristic = chars[0];
-			// 	characteristic.subscribe();
-
-		// 		var buf = new Buffer([0x56,0xFF,0xFF,0xFF,0x20,0x0F,0xAA]);
-		// 		characteristic.write(buf);
-
-		// 		characteristic.on('data', (data, isNotification) => {
-		// 			console.log(data, isNotification);
-		// 		});
-
-		// 		characteristic.on('write', (date) => {
-		// 			console.log('done');
-		// 			process.exit();
-		// 		} )
-
-		// 	})
-
-		// });
 
 	}
 });
