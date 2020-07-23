@@ -51,22 +51,23 @@ noble.on('discover', (peripheral) => {
 					res.send('Hello World')
 				})
 
-				app.get('/api/switchColor/:r/:g/:b/:time', function (req, res) {
-					console.log(`/api/switchColor/${req.params.r}/${req.params.g}/${req.params.b}`, new Date());
+				app.get('/api/switchColor/:r/:g/:b/:brightness/:time', function (req, res) {
 					let time = parseInt(req.params.time);
 					(isNaN(time) || time < 100) ? time = 100 : null;
-					if (req.params.r != null && req.params.g != null && req.params.b != null)
+					console.log(`/api/switchColor/${req.params.r}/${req.params.g}/${req.params.b}/${req.params.brightness}/${req.params.time}`, new Date());
+					if (req.params.r != null && req.params.g != null && req.params.b != null && req.params.brightness != null)
 					{
-						let RColor = parseInt(req.params.r) % 256;
-						let GColor = parseInt(req.params.g) % 256;
-						let BColor = parseInt(req.params.b) % 256;
+						let brightness = parseInt(req.params.brightness) % 101 * 0.01;
+						let RColor = parseInt(req.params.r) % 256 * brightness;
+						let GColor = parseInt(req.params.g) % 256 * brightness;
+						let BColor = parseInt(req.params.b) % 256 * brightness;
 						let colors = {
 							r: RColor,
 							b: BColor,
 							g: GColor
 						};
-						if (!isNaN(RColor) && !isNaN(GColor) && !isNaN(BColor)) {
-							switchColor(characteristic, colors, time, 0xFF);
+						if (!isNaN(RColor) && !isNaN(GColor) && !isNaN(BColor) && !isNaN(brightness)) {
+							switchColor(characteristic, colors, time, brightness);
 							res.send(colors)
 						} else {
 							res.send({error: 'color error'})
@@ -103,10 +104,30 @@ noble.on('discover', (peripheral) => {
 					console.log(`/api/whiteWorm/${req.params.brightness}`, new Date());
 					if (req.params.brightness != null)
 					{
-						let brightness = (parseInt(req.params.brightness) % 101) / 100 * 255;
+						let brightness = parseInt(req.params.brightness) % 256;
+						// let brightness = (parseInt(req.params.brightness) % 101) / 100 * 255;
 						if (!isNaN(brightness))
 						{
 							let buf = new Buffer([0x56, 0xFF, 0xFF, 0xFF, brightness, 0x0F, 0xAA]);
+							characteristic.write(buf);
+							res.send({})
+						} else {
+							res.send({error: 'brightness error'})
+						}
+					} else {
+						res.send({error: 'not all params'})
+					}
+				})
+
+				app.get('/api/white/:brightness', function (req, res) {
+					console.log(`/api/whiteWorm/${req.params.brightness}`, new Date());
+					if (req.params.brightness != null)
+					{
+						let brightness = parseInt(req.params.brightness) % 101 * 0.01;
+						// let brightness = (parseInt(req.params.brightness) % 101) / 100 * 255;
+						if (!isNaN(brightness))
+						{
+							let buf = new Buffer([0x56, 255 * brightness , 255 * brightness, 255 * brightness, 0xFF, 0xF0, 0xAA]);
 							characteristic.write(buf);
 							res.send({})
 						} else {
