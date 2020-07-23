@@ -93,9 +93,28 @@ noble.on('discover', (peripheral) => {
 							state.power = true;
 						}
 						let buf = new Buffer([0xCC, state.power === false ? 0x23 : 0x24, 0x33]);
+						state.power = !state.power;
 						characteristic.write(buf);
 						return res.send(state);
 					})
+				})
+
+				app.get('/api/whiteWorm/:brightness', function (req, res) {
+					console.log(`/api/whiteWorm/${req.params.brightness}`, new Date());
+					if (req.params.brightness != null)
+					{
+						let brightness = (parseInt(req.params.brightness) % 101) / 100 * 255;
+						if (!isNaN(brightness))
+						{
+							let buf = new Buffer([0x56, 0xFF, 0xFF, 0xFF, brightness, 0x0F, 0xAA]);
+							characteristic.write(buf);
+							res.send({})
+						} else {
+							res.send({error: 'brightness error'})
+						}
+					} else {
+						res.send({error: 'not all params'})
+					}
 				})
 
 				app.get('/api/toggle/:state', function (req, res) {
