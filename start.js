@@ -2,6 +2,8 @@ let noble = require('noble');
 let mathjs = require('mathjs');
 let express = require('express');
 const app = express();
+var interval = null;
+app.use(express.static(__dirname+'/public'));
 
 let state = {
 	color: {
@@ -47,10 +49,6 @@ noble.on('discover', (peripheral) => {
 				console.log('connected');
 				let characteristic = characteristics[0];
 
-				app.get('/', function (req, res) {
-					res.send('Hello World')
-				})
-
 				app.get('/api/switchColor/:r/:g/:b/:brightness/:time', function (req, res) {
 					let time = parseInt(req.params.time);
 					(isNaN(time) || time < 100) ? time = 100 : null;
@@ -62,11 +60,12 @@ noble.on('discover', (peripheral) => {
 						let GColor = parseInt(req.params.g) % 256 * brightness;
 						let BColor = parseInt(req.params.b) % 256 * brightness;
 						let colors = {
-							r: RColor,
-							b: BColor,
-							g: GColor
+							r: mathjs.round(RColor),
+							b: mathjs.round(BColor),
+							g: mathjs.round(GColor)
 						};
 						if (!isNaN(RColor) && !isNaN(GColor) && !isNaN(BColor) && !isNaN(brightness)) {
+							console.log(colors);
 							switchColor(characteristic, colors, time, brightness);
 							res.send(colors)
 						} else {
@@ -75,6 +74,10 @@ noble.on('discover', (peripheral) => {
 					} else {
 						res.send({error: 'not all params'})
 					}
+				})
+
+				app.get('/', (req, res) => {
+					res.sendFile(__dirname+'/index.html');
 				})
 
 				app.get('/api/toggle', (req, res) => {
@@ -227,7 +230,7 @@ noble.on('discover', (peripheral) => {
 					state.color = color;
 					// console.log(prevColor, 'prev', color, 'next');
 
-					let animationSpeed = 50;
+					let animationSpeed = 10;
 					let timeInterval = time / animationSpeed;
 
 					let perColorR = calcMinus(prevColor.r, color.r) / timeInterval;
@@ -235,7 +238,9 @@ noble.on('discover', (peripheral) => {
 					let perColorB = calcMinus(prevColor.b, color.b) / timeInterval;
 
 					let v = 0;
-					let interval = setInterval(() => {
+					if (interval != null)
+						clearInterval(interval);
+					interval = setInterval(() => {
 						v += animationSpeed;
 
 						prevColor.r -= perColorR;
@@ -267,4 +272,4 @@ noble.on('discover', (peripheral) => {
 	}
 });
 
-app.listen(3000)
+app.listen(2020)
