@@ -1,10 +1,14 @@
 let noble = require('noble');
 let mathjs = require('mathjs');
 let express = require('express');
+var cors = require('cors');
+const http = require('http');
+const https = require('https');
+const fs = require('fs');
 const app = express();
 var interval = null;
 app.use(express.static(__dirname+'/public'));
-
+app.use(cors())
 let state = {
 	color: {
 		r: 255,
@@ -272,4 +276,25 @@ noble.on('discover', (peripheral) => {
 	}
 });
 
-app.listen(2020)
+//app.listen(80)
+
+const privateKey = fs.readFileSync('./cert/privkey1.pem', 'utf8');
+const certificate = fs.readFileSync('./cert/cert1.pem', 'utf8');
+const ca = fs.readFileSync('./cert/chain1.pem', 'utf8');
+
+const credentials = {
+	key: privateKey,
+	cert: certificate,
+	ca: ca
+};
+
+const httpServer = http.createServer(app);
+const httpsServer = https.createServer(credentials, app);
+
+httpServer.listen(80, () => {
+	console.log('HTTP Server running on port 80');
+});
+
+httpsServer.listen(443, () => {
+	console.log('HTTPS Server running on port 443');
+});
