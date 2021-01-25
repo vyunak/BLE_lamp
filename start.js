@@ -7,6 +7,11 @@ const https = require('https');
 const fs = require('fs');
 const app = express();
 var interval = null;
+const basicAuth = require('express-basic-auth')
+ 
+app.use(basicAuth({
+    users: { 'admin': 'yunak' }
+}))
 var timer = new Date();
 app.use(express.static(__dirname+'/public'));
 app.use(cors())
