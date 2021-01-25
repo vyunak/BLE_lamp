@@ -10,6 +10,7 @@ var interval = null;
 const basicAuth = require('express-basic-auth')
  
 app.use(basicAuth({
+	challenge: true,
     users: { 'admin': 'yunak' }
 }))
 var timer = new Date();
