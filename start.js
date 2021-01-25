@@ -59,7 +59,7 @@ noble.on('discover', (peripheral) => {
 					console.log(`/api/switchColor/${req.params.r}/${req.params.g}/${req.params.b}/${req.params.brightness}/${req.params.time}`, new Date());
 					if (req.params.r != null && req.params.g != null && req.params.b != null && req.params.brightness != null)
 					{
-						let brightness = parseInt(req.params.brightness) % 101 * 0.01;
+						let brightness = parseInt(req.params.brightness) % 101 / 100;
 						let RColor = parseInt(req.params.r) % 256 * brightness;
 						let GColor = parseInt(req.params.g) % 256 * brightness;
 						let BColor = parseInt(req.params.b) % 256 * brightness;
@@ -70,7 +70,7 @@ noble.on('discover', (peripheral) => {
 						};
 						if (!isNaN(RColor) && !isNaN(GColor) && !isNaN(BColor) && !isNaN(brightness)) {
 							console.log(colors);
-							switchColor(characteristic, colors, time, brightness);
+							switchColor(characteristic, colors, time, brightness * 255);
 							res.send(colors)
 						} else {
 							res.send({error: 'color error'})
@@ -111,7 +111,7 @@ noble.on('discover', (peripheral) => {
 					console.log(`/api/whiteWorm/${req.params.brightness}`, new Date());
 					if (req.params.brightness != null)
 					{
-						let brightness = parseInt(req.params.brightness) % 256;
+						let brightness = parseInt(req.params.brightness) % 101 / 100 * 255;
 						// let brightness = (parseInt(req.params.brightness) % 101) / 100 * 255;
 						if (!isNaN(brightness))
 						{
@@ -130,11 +130,11 @@ noble.on('discover', (peripheral) => {
 					console.log(`/api/whiteWorm/${req.params.brightness}`, new Date());
 					if (req.params.brightness != null)
 					{
-						let brightness = parseInt(req.params.brightness) % 101 * 0.01;
+						let brightness = parseInt(req.params.brightness) % 101 / 100 * 255;
 						// let brightness = (parseInt(req.params.brightness) % 101) / 100 * 255;
 						if (!isNaN(brightness))
 						{
-							let buf = new Buffer([0x56, 255 * brightness , 255 * brightness, 255 * brightness, 0xFF, 0xF0, 0xAA]);
+							let buf = new Buffer([0x56, brightness , brightness, brightness, 0xFF, 0xF0, 0xAA]);
 							characteristic.write(buf);
 							res.send({})
 						} else {
