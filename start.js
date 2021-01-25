@@ -7,6 +7,7 @@ const https = require('https');
 const fs = require('fs');
 const app = express();
 var interval = null;
+var timer = new Date();
 app.use(express.static(__dirname+'/public'));
 app.use(cors())
 let state = {
@@ -57,8 +58,9 @@ noble.on('discover', (peripheral) => {
 					let time = parseInt(req.params.time);
 					(isNaN(time) || time < 100) ? time = 100 : null;
 					console.log(`/api/switchColor/${req.params.r}/${req.params.g}/${req.params.b}/${req.params.brightness}/${req.params.time}`, new Date());
-					if (req.params.r != null && req.params.g != null && req.params.b != null && req.params.brightness != null)
+					if (req.params.r != null && req.params.g != null && req.params.b != null && req.params.brightness != null && timer <= new Date())
 					{
+						timer = new Date();
 						let brightness = parseInt(req.params.brightness) % 101 / 100;
 						let RColor = parseInt(req.params.r) % 256 * brightness;
 						let GColor = parseInt(req.params.g) % 256 * brightness;
@@ -109,8 +111,9 @@ noble.on('discover', (peripheral) => {
 
 				app.get('/api/whiteWorm/:brightness', function (req, res) {
 					console.log(`/api/whiteWorm/${req.params.brightness}`, new Date());
-					if (req.params.brightness != null)
+					if (req.params.brightness != null && timer <= new Date())
 					{
+						timer = new Date();
 						let brightness = parseInt(req.params.brightness) % 101 / 100 * 255;
 						// let brightness = (parseInt(req.params.brightness) % 101) / 100 * 255;
 						if (!isNaN(brightness))
