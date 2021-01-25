@@ -61,7 +61,7 @@
 				let green = parseInt($('#demo').val().replace('#', '').slice(2,4), 16);
 				let blue = parseInt($('#demo').val().replace('#', '').slice(4,6), 16);
 				$.ajax({
-					url: `http://176.37.106.97:2020/api/switchColor/${red}/${green}/${blue}/100/100`
+					url: `https://lamp.vyunak.co.ua/api/switchColor/${red}/${green}/${blue}/100/100`
 				})
 			})
 		});
