@@ -9,15 +9,18 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "bluetooth-hci-socket": "git+https://github.com/jrobeson/node-bluetooth-hci-socket.git#fix-builds-for-node-10",
+    "bl": ">=4.0.3",
+    "bluetooth-hci-socket": "git+https://github.com/abandonware/node-bluetooth-hci-socket.git",
     "cors": "^2.8.5",
+    "cryptiles": ">=4.1.2",
     "express": "^4.17.1",
+    "express-basic-auth": "^1.2.0",
+    "hoek": ">=4.2.1",
+    "html": "^1.0.0",
     "https": "^1.0.0",
+    "ini": ">=1.3.6",
     "mathjs": "^7.1.0",
     "noble": "^1.9.1",
-    "hoek": ">=4.2.1",
-    "cryptiles": ">=4.1.2",
-    "bl": ">=4.0.3",
-    "ini": ">=1.3.6"
+    "pug": "^3.0.2"
   }
 }

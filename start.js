@@ -8,7 +8,7 @@ const fs = require('fs');
 const app = express();
 var interval = null;
 const basicAuth = require('express-basic-auth')
- 
+app.set('view engine', 'pug'); 
 app.use(basicAuth({
 	challenge: true,
     users: { 'admin': 'yunak' }
@@ -89,7 +89,7 @@ noble.on('discover', (peripheral) => {
 				})
 
 				app.get('/', (req, res) => {
-					res.sendFile(__dirname+'/index.html');
+					res.render(__dirname+'/public/index2', {'url': req.get('host')});
 				})
 
 				app.get('/api/toggle', (req, res) => {
